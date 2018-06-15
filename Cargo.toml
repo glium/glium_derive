@@ -2,6 +2,8 @@
 name = "glium_derive"
 version = "0.1.0"
 authors = ["Dmitry Vdovin <voidxnull@gmail.com>"]
+description = "Custom derive for glium Vertex"
+license = "MIT"
 
 [lib]
 proc-macro = true
