@@ -35,7 +35,7 @@ fn impl_glium_vertex_derive(ast: &DeriveInput) -> TokenStream {
     };
 
     let bindings = fields.iter().map(|field| {
-        let attributes = field.attrs.iter()
+        let attrs = field.attrs.iter()
             .flat_map(Attribute::interpret_meta)
             .flat_map(|meta| {
                 match meta {
@@ -46,15 +46,13 @@ fn impl_glium_vertex_derive(ast: &DeriveInput) -> TokenStream {
                         Vec::new()
                     }
                 }
-            }).collect::<Vec<_>>();
-
-        println!("Attrs: {:?}", &attributes);
+            });
 
         let field_name = &field.ident;
         let mut vertex_attr_name = quote!(#field_name);
         let mut normalize = false;
 
-        for meta in &attributes {
+        for meta in attrs {
             match meta {
                 NestedMeta::Meta(Meta::NameValue(MetaNameValue { ref ident, ref lit, .. })) => {
                     if quote!(#ident).to_string() == "attr" {
