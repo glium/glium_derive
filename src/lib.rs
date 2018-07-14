@@ -24,11 +24,11 @@ fn impl_glium_vertex_derive(ast: &DeriveInput) -> TokenStream {
 
     let fields = match ast.data {
         Data::Struct(DataStruct {
-            fields: Fields::Named(ref fields),
-            ..
-        }) => {
+                         fields: Fields::Named(ref fields),
+                         ..
+                     }) => {
             &fields.named
-        },
+        }
         _ => {
             panic!("#[derive(Vertex)] only defined for structs.");
         }
@@ -41,7 +41,7 @@ fn impl_glium_vertex_derive(ast: &DeriveInput) -> TokenStream {
                 match meta {
                     Meta::List(MetaList { ref ident, ref nested, .. }) if ident == "glium" => {
                         nested.iter().cloned().collect()
-                    },
+                    }
                     _ => {
                         Vec::new()
                     }
@@ -49,7 +49,8 @@ fn impl_glium_vertex_derive(ast: &DeriveInput) -> TokenStream {
             });
 
         let field_name = &field.ident;
-        let mut vertex_attr_name = quote!(#field_name);
+        let vertex_attr_lit = format!("{}", field_name.as_ref().unwrap());
+        let mut vertex_attr_name = quote!(#vertex_attr_lit);
         let mut normalize = false;
 
         for meta in attrs {
@@ -60,14 +61,14 @@ fn impl_glium_vertex_derive(ast: &DeriveInput) -> TokenStream {
                     } else {
                         panic!("Unknown field attribute {}", ident);
                     }
-                },
+                }
                 NestedMeta::Meta(Meta::Word(ref ident)) => {
                     if quote!(#ident).to_string() == "normalize" {
                         normalize = true;
                     } else {
                         panic!("Unknown field attribute {}", ident);
                     }
-                },
+                }
                 _ => (),
             }
         };
