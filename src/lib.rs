@@ -49,7 +49,8 @@ fn impl_glium_vertex_derive(ast: &DeriveInput) -> TokenStream {
             });
 
         let field_name = &field.ident;
-        let mut vertex_attr_name = quote!(#field_name);
+        let vertex_attr_lit = format!("{}", field_name.as_ref().unwrap());
+        let mut vertex_attr_name = quote!(#vertex_attr_lit);
         let mut normalize = false;
 
         for meta in attrs {
