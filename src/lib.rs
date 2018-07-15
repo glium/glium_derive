@@ -24,9 +24,9 @@ fn impl_glium_vertex_derive(ast: &DeriveInput) -> TokenStream {
 
     let fields = match ast.data {
         Data::Struct(DataStruct {
-              fields: Fields::Named(ref fields),
-             ..
-         }) => {
+            fields: Fields::Named(ref fields),
+            ..
+        }) => {
             &fields.named
         },
         _ => {
