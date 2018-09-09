@@ -8,11 +8,11 @@
 //!
 //! #[derive(Clone, Copy, Vertex)]
 //! struct MyVertex {
-//!     #[glium(attr = "a_pos")
+//!     #[glium(attr = "a_pos")]
 //!     pos: [f32; 3],
-//!     #[glium(attr = "a_uv")
+//!     #[glium(attr = "a_uv")]
 //!     uv: [f32; 2],
-//!     #[glium(attr = "a_color", normalize)
+//!     #[glium(attr = "a_color", normalize)]
 //!     color: u32,
 //!     a_custom: u32, // the attribute can be omitted
 //! }
