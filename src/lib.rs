@@ -1,3 +1,23 @@
+//! A custom derive implementation for Glium Vertex
+//!
+//! ## Example
+//! ```rust
+//! extern crate glium;
+//! #[macro_use]
+//! extern crate glium_derive;
+//!
+//! #[derive(Clone, Copy, Vertex)]
+//! struct MyVertex {
+//!     #[glium(attr = "a_pos")
+//!     pos: [f32; 3],
+//!     #[glium(attr = "a_uv")
+//!     uv: [f32; 2],
+//!     #[glium(attr = "a_color", normalize)
+//!     color: u32,
+//!     a_custom: u32, // the attribute can be omitted
+//! }
+//! ```
+
 #![recursion_limit = "128"]
 
 extern crate proc_macro;
