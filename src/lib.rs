@@ -105,23 +105,23 @@ fn impl_glium_vertex_derive(ast: &DeriveInput) -> TokenStream {
             (
                 Cow::Borrowed(#vertex_attr_name),
                 {
-                    // calculate the offset of the struct fields
-                    let dummy: #struct_name = unsafe { ::std::mem::uninitialized() };
                     let offset: usize = {
-                        let dummy_ref = &dummy;
-                        let field_ref = &dummy.#field_name;
-                        (field_ref as *const _ as usize) - (dummy_ref as *const _ as usize)
+                        let uninit = core::mem::MaybeUninit::<#struct_name>::uninit();
+                        let uninit_ptr = uninit.as_ptr();
+                        let field_ptr = unsafe { &(*uninit_ptr).#field_name as *const _ };
+                        field_ptr as usize - uninit_ptr as usize
                     };
-                    // NOTE: `glium::vertex::Vertex` requires `#struct_name` to have `Copy` trait
-                    // `Copy` excludes `Drop`, so we don't have to `std::mem::forget(dummy)`
                     offset
                 },
                 {
                     fn attr_type_of_val<T: ::glium::vertex::Attribute>(_: &T) -> ::glium::vertex::AttributeType {
                         <T as ::glium::vertex::Attribute>::get_type()
                     }
-                    let dummy: &#struct_name = unsafe { ::std::mem::transmute(0usize) };
-                    attr_type_of_val(&dummy.#field_name)
+
+                    let uninit = core::mem::MaybeUninit::<#struct_name>::uninit();
+                    let uninit_ptr = uninit.as_ptr();
+                    let field_ref = unsafe { &(*uninit_ptr).#field_name };
+                    attr_type_of_val(field_ref)
                 },
                 #normalize
             )
