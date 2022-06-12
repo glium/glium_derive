@@ -75,6 +75,7 @@ fn impl_glium_vertex_derive(ast: &DeriveInput) -> TokenStream {
         let field_name = &field.ident;
         let vertex_attr_lit = format!("{}", field_name.as_ref().unwrap());
         let mut vertex_attr_name = quote!(#vertex_attr_lit);
+        let mut vertex_location: i32 = -1;
         let mut normalize = false;
 
         for meta in attrs {
@@ -84,6 +85,8 @@ fn impl_glium_vertex_derive(ast: &DeriveInput) -> TokenStream {
 
                     if ident == "attr" {
                         vertex_attr_name = quote!(#lit);
+                    } else if ident == "location" {
+                        vertex_location = format!("{}", quote!(#lit)).parse().unwrap();
                     } else {
                         panic!("Unknown field attribute {}", ident);
                     }
@@ -113,6 +116,7 @@ fn impl_glium_vertex_derive(ast: &DeriveInput) -> TokenStream {
                     };
                     offset
                 },
+                #vertex_location,
                 {
                     fn attr_type_of_val<T: ::glium::vertex::Attribute>(_: &T) -> ::glium::vertex::AttributeType {
                         <T as ::glium::vertex::Attribute>::get_type()
