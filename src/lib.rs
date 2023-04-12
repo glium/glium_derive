@@ -27,7 +27,9 @@ extern crate quote;
 
 use proc_macro::TokenStream;
 use syn::spanned::Spanned;
-use syn::{Data, DataStruct, DeriveInput, Fields, Attribute, Meta, MetaList, MetaNameValue, NestedMeta};
+use syn::{
+    Attribute, Data, DataStruct, DeriveInput, Fields, Meta, MetaList, MetaNameValue, NestedMeta,
+};
 
 #[proc_macro_derive(Vertex, attributes(glium))]
 pub fn glium_vertex_derive(input: TokenStream) -> TokenStream {
@@ -44,9 +46,7 @@ fn impl_glium_vertex_derive(ast: &DeriveInput) -> TokenStream {
         Data::Struct(DataStruct {
             fields: Fields::Named(ref fields),
             ..
-        }) => {
-            &fields.named
-        },
+        }) => &fields.named,
         _ => {
             panic!("#[derive(Vertex)] only defined for structs.");
         }
@@ -109,7 +109,7 @@ fn impl_glium_vertex_derive(ast: &DeriveInput) -> TokenStream {
                 Cow::Borrowed(#vertex_attr_name),
                 {
                     let offset: usize = {
-                        let uninit = core::mem::MaybeUninit::<#struct_name>::uninit();
+                        let uninit = ::core::mem::MaybeUninit::<#struct_name>::uninit();
                         let uninit_ptr = uninit.as_ptr();
                         let field_ptr = unsafe { &(*uninit_ptr).#field_name as *const _ };
                         field_ptr as usize - uninit_ptr as usize
@@ -122,7 +122,7 @@ fn impl_glium_vertex_derive(ast: &DeriveInput) -> TokenStream {
                         <T as ::glium::vertex::Attribute>::get_type()
                     }
 
-                    let uninit = core::mem::MaybeUninit::<#struct_name>::uninit();
+                    let uninit = ::core::mem::MaybeUninit::<#struct_name>::uninit();
                     let uninit_ptr = uninit.as_ptr();
                     let field_ref = unsafe { &(*uninit_ptr).#field_name };
                     attr_type_of_val(field_ref)
