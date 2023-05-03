@@ -106,20 +106,21 @@ fn impl_glium_vertex_derive(ast: &DeriveInput) -> TokenStream {
 
         quote_spanned! {field.span()=>
             (
-                Cow::Borrowed(#vertex_attr_name),
+                std::borrow::Cow::Borrowed(#vertex_attr_name),
                 {
                     let offset: usize = {
                         let uninit = core::mem::MaybeUninit::<#struct_name>::uninit();
                         let uninit_ptr = uninit.as_ptr();
                         let field_ptr = unsafe { &(*uninit_ptr).#field_name as *const _ };
-                        field_ptr as usize - uninit_ptr as usize
+
+                        unsafe { (field_ptr as *const u8).offset_from(uninit_ptr as *const u8) as usize }
                     };
                     offset
                 },
                 #vertex_location,
                 {
-                    fn attr_type_of_val<T: ::glium::vertex::Attribute>(_: &T) -> ::glium::vertex::AttributeType {
-                        <T as ::glium::vertex::Attribute>::get_type()
+                    const fn attr_type_of_val<T: ::glium::vertex::Attribute>(_: &T) -> ::glium::vertex::AttributeType {
+                        <T as ::glium::vertex::Attribute>::TYPE
                     }
 
                     let uninit = core::mem::MaybeUninit::<#struct_name>::uninit();
@@ -133,17 +134,18 @@ fn impl_glium_vertex_derive(ast: &DeriveInput) -> TokenStream {
     });
 
     let stream = quote! {
+        impl #struct_name #ty_generics #where_clause {
+            const BINDINGS: ::glium::vertex::VertexFormat = &[
+                #(
+                    #bindings,
+                )*
+            ];
+        }
+
         impl #impl_generics ::glium::vertex::Vertex for #struct_name #ty_generics #where_clause {
             #[inline]
             fn build_bindings() -> ::glium::vertex::VertexFormat {
-                use std::borrow::Cow;
-
-                // TODO: use a &'static [] if possible
-                Cow::Owned(vec![
-                    #(
-                        #bindings,
-                    )*
-                ])
+                Self::BINDINGS
             }
         }
     };
