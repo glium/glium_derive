@@ -35,8 +35,10 @@ extern crate syn;
 extern crate quote;
 
 use proc_macro::TokenStream;
-use syn::spanned::Spanned;
-use syn::{Data, DataStruct, DeriveInput, Fields, Attribute, Meta, MetaList, MetaNameValue, NestedMeta};
+use syn::{spanned::Spanned, Field};
+use syn::{
+    Attribute, Data, DataStruct, DeriveInput, Fields, Meta, MetaList, MetaNameValue, NestedMeta,
+};
 
 #[proc_macro_derive(Vertex, attributes(glium))]
 pub fn glium_vertex_derive(input: TokenStream) -> TokenStream {
@@ -53,34 +55,14 @@ fn impl_glium_vertex_derive(ast: &DeriveInput) -> TokenStream {
         Data::Struct(DataStruct {
             fields: Fields::Named(ref fields),
             ..
-        }) => {
-            &fields.named
-        },
+        }) => &fields.named,
         _ => {
             panic!("#[derive(Vertex)] only defined for structs.");
         }
     };
 
     let bindings = fields.iter().map(|field| {
-        let attrs = field.attrs.iter()
-            .flat_map(Attribute::parse_meta)
-            .flat_map(|meta| {
-                match meta {
-                    Meta::List(MetaList { ref path, ref nested, .. }) => {
-                        let ident = path.get_ident().expect("Expected ident got path");
-
-                        if ident == "glium" {
-                            nested.iter().cloned().collect()
-                        } else {
-                            Vec::new()
-                        }
-                    },
-                    _ => {
-                        Vec::new()
-                    }
-                }
-            });
-
+        let attrs = get_attributes(field);
         let field_name = &field.ident;
         let vertex_attr_lit = format!("{}", field_name.as_ref().unwrap());
         let mut vertex_attr_name = quote!(#vertex_attr_lit);
@@ -90,7 +72,7 @@ fn impl_glium_vertex_derive(ast: &DeriveInput) -> TokenStream {
         for meta in attrs {
             match meta {
                 NestedMeta::Meta(Meta::NameValue(MetaNameValue { ref path, ref lit, .. })) => {
-                    let ident = path.get_ident().expect("Expected ident got path");
+                    let ident = path.get_ident().expect("Expected ident, got path");
 
                     if ident == "attr" {
                         vertex_attr_name = quote!(#lit);
@@ -101,7 +83,7 @@ fn impl_glium_vertex_derive(ast: &DeriveInput) -> TokenStream {
                     }
                 },
                 NestedMeta::Meta(Meta::Path(ref path)) => {
-                    let ident = path.get_ident().expect("Expected ident got path");
+                    let ident = path.get_ident().expect("Expected ident, got path");
 
                     if ident == "normalize" {
                         normalize = true;
@@ -177,33 +159,14 @@ fn impl_glium_uniforms_derive(ast: &DeriveInput) -> TokenStream {
         Data::Struct(DataStruct {
             fields: Fields::Named(ref fields),
             ..
-        }) => {
-            &fields.named
-        },
+        }) => &fields.named,
         _ => {
             panic!("#[derive(Uniforms)] only defined for structs.");
         }
     };
 
     let bindings = fields.iter().map(|field| {
-        let attrs = field.attrs.iter()
-            .flat_map(Attribute::parse_meta)
-            .flat_map(|meta| {
-                match meta {
-                    Meta::List(MetaList { ref path, ref nested, .. }) => {
-                        let ident = path.get_ident().expect("Expected ident got path");
-
-                        if ident == "glium" {
-                            nested.iter().cloned().collect()
-                        } else {
-                            Vec::new()
-                        }
-                    },
-                    _ => {
-                        Vec::new()
-                    }
-                }
-            });
+        let attrs = get_attributes(field);
 
         let field_name = &field.ident;
         let uniform_lit = format!("{}", field_name.as_ref().unwrap());
@@ -212,7 +175,7 @@ fn impl_glium_uniforms_derive(ast: &DeriveInput) -> TokenStream {
         for meta in attrs {
             match meta {
                 NestedMeta::Meta(Meta::NameValue(MetaNameValue { ref path, ref lit, .. })) => {
-                    let ident = path.get_ident().expect("Expected ident got path");
+                    let ident = path.get_ident().expect("Expected ident, got path");
 
                     if ident == "attr" {
                         uniform_name = quote!(#lit);
@@ -221,7 +184,7 @@ fn impl_glium_uniforms_derive(ast: &DeriveInput) -> TokenStream {
                     }
                 },
                 NestedMeta::Meta(Meta::Path(ref path)) => {
-                    let ident = path.get_ident().expect("Expected ident got path");
+                    let ident = path.get_ident().expect("Expected ident, got path");
                     panic!("Unknown field attribute {}", ident);
                 },
                 _ => (),
@@ -245,4 +208,29 @@ fn impl_glium_uniforms_derive(ast: &DeriveInput) -> TokenStream {
     };
 
     stream.into()
+}
+
+fn get_attributes<'a>(field: &'a Field) -> impl Iterator<Item = NestedMeta> + 'a {
+    field
+        .attrs
+        .iter()
+        .flat_map(Attribute::parse_meta)
+        .flat_map(|meta| {
+            match meta {
+                Meta::List(MetaList {
+                    ref path,
+                    ref nested,
+                    ..
+                }) => {
+                    let ident = path.get_ident().expect("Expected ident, got path");
+
+                    if ident == "glium" {
+                        return nested.iter().cloned().collect();
+                    }
+                }
+                _ => {}
+            }
+
+            Vec::new()
+        })
 }
