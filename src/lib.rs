@@ -100,7 +100,7 @@ fn impl_glium_vertex_derive(ast: &DeriveInput) -> TokenStream {
                 std::borrow::Cow::Borrowed(#vertex_attr_name),
                 {
                     let offset: usize = {
-                        let uninit = core::mem::MaybeUninit::<#struct_name>::uninit();
+                        let uninit = ::core::mem::MaybeUninit::<#struct_name>::uninit();
                         let uninit_ptr = uninit.as_ptr();
                         let field_ptr = unsafe { &(*uninit_ptr).#field_name as *const _ };
 
@@ -114,7 +114,7 @@ fn impl_glium_vertex_derive(ast: &DeriveInput) -> TokenStream {
                         <T as ::glium::vertex::Attribute>::TYPE
                     }
 
-                    let uninit = core::mem::MaybeUninit::<#struct_name>::uninit();
+                    let uninit = ::core::mem::MaybeUninit::<#struct_name>::uninit();
                     let uninit_ptr = uninit.as_ptr();
                     let field_ref = unsafe { &(*uninit_ptr).#field_name };
                     attr_type_of_val(field_ref)
